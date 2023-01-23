@@ -42,6 +42,7 @@ import { isValidResourceLocatorParameterValue } from './type-guards';
 import { deepCopy } from './utils';
 
 import type { Workflow } from './Workflow';
+import * as console from "console";
 
 export const cronNodeOptions: INodePropertyCollection[] = [
 	{
@@ -463,6 +464,9 @@ export function getParamterResolveOrder(
 	nodePropertiesArray: INodeProperties[],
 	parameterDependencies: IParameterDependencies,
 ): number[] {
+
+	// console.log('------ getParamterResolveOrder -----');
+
 	const executionOrder: number[] = [];
 	const indexToResolve = Array.from({ length: nodePropertiesArray.length }, (v, k) => k);
 	const resolvedParameters: string[] = [];
@@ -475,13 +479,16 @@ export function getParamterResolveOrder(
 
 	let iterations = 0;
 
+
 	while (indexToResolve.length !== 0) {
 		iterations += 1;
 
 		index = indexToResolve.shift() as number;
 		property = nodePropertiesArray[index];
+		// console.log(property);
 
 		if (parameterDependencies[property.name].length === 0) {
+			// console.log('parameter ' + property.name + ' does not have displayOptions, so just add it');
 			// Does not have any dependencies so simply add
 			executionOrder.push(index);
 			resolvedParameters.push(property.name);
@@ -545,9 +552,13 @@ export function getNodeParameters(
 	parentType?: string,
 	parameterDependencies?: IParameterDependencies,
 ): INodeParameters | null {
+	// console.log('----- getNodeParameters for node "' + node?.name +  '" -----');
+
 	if (parameterDependencies === undefined) {
+		// console.log('retrieving the parameterDependencies');
 		parameterDependencies = getParameterDependencies(nodePropertiesArray);
 	}
+	// console.log(parameterDependencies);
 
 	// Get the parameter names which get used multiple times as for this
 	// ones we have to always check which ones get displayed and which ones not
@@ -568,6 +579,7 @@ export function getNodeParameters(
 
 	let nodeValuesDisplayCheck = nodeParametersFull;
 	if (!dataIsResolved && !returnNoneDisplayed) {
+		// console.log("This is a first pass in getNodeParameters -> recurrent call to getNodeParameters")
 		nodeValuesDisplayCheck = getNodeParameters(
 			nodePropertiesArray,
 			nodeValues,
@@ -580,9 +592,21 @@ export function getNodeParameters(
 			parentType,
 			parameterDependencies,
 		) as INodeParameters;
+	} else {
+		// console.log("This is a recurrent call of getNodeParameters --> we continue our journey");
 	}
 
+	if (!dataIsResolved && !returnNoneDisplayed) {
+		// console.log("%%%%%%%% We continue the non-recurrent call %%%%%%%%%%%%");
+	}
+
+	// console.log('checking content of nodeValuesDisplayCheck');
+	// console.log(nodeValuesDisplayCheck);
+
 	nodeValuesRoot = nodeValuesRoot || nodeValuesDisplayCheck;
+	// console.log('checking content of nodeValuesRoot');
+	// console.log(nodeValuesRoot);
+
 
 	// Go through the parameters in order of their dependencies
 	const parameterItterationOrderIndex = getParamterResolveOrder(
@@ -590,12 +614,23 @@ export function getNodeParameters(
 		parameterDependencies,
 	);
 
+	// console.log('checking content of parameterItterationOrderIndex');
+	// console.log(parameterItterationOrderIndex);
+
+	// console.log("   ");
+	// console.log('========================================================================================================');
+	// console.log("                                 START PROCESSING PARAMETER INDEX ");
+	// console.log('========================================================================================================');
+	// console.log("   ");
 	for (const parameterIndex of parameterItterationOrderIndex) {
+		// console.log('Processing parameterIndex ' + parameterIndex);
 		const nodeProperties = nodePropertiesArray[parameterIndex];
+		// console.log(nodeProperties);
 		if (
 			nodeValues[nodeProperties.name] === undefined &&
 			(!returnDefaults || parentType === 'collection')
 		) {
+			// console.log(nodeProperties.name + ' in not defined for the node, so go to next parameterIndex');
 			// The value is not defined so go to the next
 			continue;
 		}
@@ -604,14 +639,16 @@ export function getNodeParameters(
 			!returnNoneDisplayed &&
 			!displayParameter(nodeValuesDisplayCheck, nodeProperties, node, nodeValuesRoot)
 		) {
+			// console.log("We are here!!??");
 			if (!returnNoneDisplayed || !returnDefaults) {
 				continue;
+				// console.log(".... and exit the loop");
 			}
 		}
 
 		if (!['collection', 'fixedCollection'].includes(nodeProperties.type)) {
 			// Is a simple property so can be set as it is
-
+			// console.log(nodeProperties.name +  " is of type " + nodeProperties.type);
 			if (duplicateParameterNames.includes(nodeProperties.name)) {
 				if (!displayParameter(nodeValuesDisplayCheck, nodeProperties, node, nodeValuesRoot)) {
 					continue;
@@ -619,6 +656,7 @@ export function getNodeParameters(
 			}
 
 			if (returnDefaults) {
+				// console.log('We must return the defaults');
 				// Set also when it has the default value
 				if (['boolean', 'number', 'options'].includes(nodeProperties.type)) {
 					// Boolean, numbers and options are special as false and 0 are valid values
@@ -655,6 +693,7 @@ export function getNodeParameters(
 		}
 
 		if (onlySimpleTypes) {
+			// console.log('onlySimpleTypes -> leave loop')
 			// It is only supposed to resolve the simple types. So continue.
 			continue;
 		}
@@ -663,7 +702,7 @@ export function getNodeParameters(
 		let tempValue: INodeParameters | null;
 		if (nodeProperties.type === 'collection') {
 			// Is collection
-
+			// console.log(nodeProperties.name +  " is of type " + nodeProperties.type);
 			if (
 				nodeProperties.typeOptions !== undefined &&
 				nodeProperties.typeOptions.multipleValues === true
@@ -709,7 +748,7 @@ export function getNodeParameters(
 			}
 		} else if (nodeProperties.type === 'fixedCollection') {
 			// Is fixedCollection
-
+			// console.log(nodeProperties.name +  " is of type " + nodeProperties.type);
 			const collectionValues: INodeParameters = {};
 			let tempNodeParameters: INodeParameters;
 			let tempNodePropertiesArray: INodeProperties[];
@@ -846,6 +885,13 @@ export function getNodeParameters(
 			}
 		}
 	}
+
+	// console.log("   ");
+	// console.log('========================================================================================================');
+	// console.log("                                 END PROCESSING PARAMETER INDEX ");
+	// console.log('========================================================================================================');
+	// console.log("   ");
+
 	return nodeParameters;
 }
 
@@ -866,7 +912,8 @@ export async function prepareOutputData(
 	}
 
 	returnData.push(outputData);
-
+	// console.log("Checking the return data in prepareOutputData")
+	// console.log(returnData);
 	return returnData;
 }
 

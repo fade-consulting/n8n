@@ -479,7 +479,10 @@ export class If implements INodeType {
 				returnDataFalse.push(item);
 			}
 		}
-
+		console.log('returnDataTrue is');
+		console.log(returnDataTrue);
+		console.log('returnDataFalse is');
+		console.log(returnDataFalse);
 		return [returnDataTrue, returnDataFalse];
 	}
 }

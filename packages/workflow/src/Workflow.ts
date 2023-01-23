@@ -55,6 +55,7 @@ import * as NodeHelpers from './NodeHelpers';
 import * as ObservableObject from './ObservableObject';
 import { RoutingNode } from './RoutingNode';
 import { Expression } from './Expression';
+import * as console from "console";
 
 function dedupe<T>(arr: T[]): T[] {
 	return [...new Set(arr)];
@@ -1154,8 +1155,11 @@ export class Workflow {
 		nodeExecuteFunctions: INodeExecuteFunctions,
 		mode: WorkflowExecuteMode,
 	): Promise<IRunNodeResponse> {
+
 		const { node } = executionData;
+		console.log('------------>>>>>>>> Running the node ' + node.name);
 		let inputData = executionData.data;
+		console.log(inputData['main']);
 
 		if (node.disabled === true) {
 			// If node is disabled simply pass the data through
@@ -1188,6 +1192,8 @@ export class Workflow {
 			if (inputData.hasOwnProperty('main') && inputData.main.length > 0) {
 				// We always use the data of main input and the first input for executeSingle
 				connectionInputData = inputData.main[0] as INodeExecutionData[];
+				console.log('****************************');
+				console.log(connectionInputData);
 			}
 
 			if (connectionInputData.length === 0) {
@@ -1257,6 +1263,7 @@ export class Workflow {
 				return { data: [promiseResults] };
 			}
 		} else if (nodeType.execute) {
+			// console.log('---------------->>>>>>>>>>>> nodeType.execute');
 			const thisArgs = nodeExecuteFunctions.getExecuteFunctions(
 				this,
 				runExecutionData,

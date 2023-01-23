@@ -48,6 +48,7 @@ import { generateFailedExecutionFromError } from '@/WorkflowHelpers';
 import { initErrorHandling } from '@/ErrorReporting';
 import { PermissionChecker } from '@/UserManagement/PermissionChecker';
 import { getLicense } from './License';
+import * as console from "console";
 
 class WorkflowRunnerProcess {
 	data: IWorkflowExecutionDataProcessWithExecution | undefined;
@@ -76,6 +77,9 @@ class WorkflowRunnerProcess {
 	}
 
 	async runWorkflow(inputData: IWorkflowExecutionDataProcessWithExecution): Promise<IRun> {
+
+		console.log('>>>>>>>>>>>>>>>> RUNWORKFLOW <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
+
 		process.once('SIGTERM', WorkflowRunnerProcess.stopProcess);
 		process.once('SIGINT', WorkflowRunnerProcess.stopProcess);
 
@@ -86,6 +90,8 @@ class WorkflowRunnerProcess {
 		LoggerProxy.init(logger);
 
 		this.data = inputData;
+		console.log("Checking the input data in runWorkflow");
+		console.log(inputData);
 		const { userId } = inputData;
 
 		logger.verbose('Initializing n8n sub-process', {
@@ -143,6 +149,10 @@ class WorkflowRunnerProcess {
 			settings: this.data.workflowData.settings,
 			pinData: this.data.pinData,
 		});
+
+		console.log('Created a new instance of the workflow');
+		console.log(this.workflow);
+
 		try {
 			await PermissionChecker.check(this.workflow, userId);
 		} catch (error) {
@@ -193,6 +203,10 @@ class WorkflowRunnerProcess {
 				);
 			}
 		};
+
+		console.log('Checking the value of additionalData');
+		console.log(additionalData);
+
 		const executeWorkflowFunction = additionalData.executeWorkflow;
 		additionalData.executeWorkflow = async (
 			workflowInfo: IExecuteWorkflowInfo,
@@ -203,6 +217,9 @@ class WorkflowRunnerProcess {
 				parentWorkflowSettings?: IWorkflowSettings;
 			},
 		): Promise<Array<INodeExecutionData[] | null> | IRun> => {
+
+			console.log('---- additionalData.executeWorkflow ----');
+
 			const workflowData = await WorkflowExecuteAdditionalData.getWorkflowData(
 				workflowInfo,
 				options?.parentWorkflowId,
@@ -271,11 +288,14 @@ class WorkflowRunnerProcess {
 		};
 
 		if (this.data.executionData !== undefined) {
+			console.log('this.data.executionData !== undefined')
 			this.workflowExecute = new WorkflowExecute(
 				additionalData,
 				this.data.executionMode,
 				this.data.executionData,
 			);
+
+			console.log('returning this.workflowExecute.processRunExecutionData(this.workflow)')
 			return this.workflowExecute.processRunExecutionData(this.workflow);
 		}
 		if (

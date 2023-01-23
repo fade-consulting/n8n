@@ -39,6 +39,7 @@ import {
 } from 'n8n-workflow';
 import get from 'lodash.get';
 import * as NodeExecuteFunctions from './NodeExecuteFunctions';
+import * as console from "console";
 
 export class WorkflowExecute {
 	runExecutionData: IRunExecutionData;
@@ -711,7 +712,8 @@ export class WorkflowExecute {
 		let runIndex: number;
 		let startTime: number;
 		let taskData: ITaskData;
-
+		// console.log('Checking startData');
+		// console.log(this.runExecutionData.startData);
 		if (this.runExecutionData.startData === undefined) {
 			this.runExecutionData.startData = {};
 		}
@@ -945,7 +947,8 @@ export class WorkflowExecute {
 									this.mode,
 								);
 								nodeSuccessData = runNodeData.data;
-
+								console.log('nodeSuccessData is ...');
+								console.log(nodeSuccessData);
 								if (runNodeData.closeFunction) {
 									// Explanation why we do this can be found in n8n-workflow/Workflow.ts -> runNode
 									// eslint-disable-next-line @typescript-eslint/no-unsafe-call

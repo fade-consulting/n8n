@@ -143,6 +143,7 @@ export const workflowRun = mixins(
 
 				// Get the direct parents of the node
 				let directParentNodes: string[] = [];
+				// console.log('Setting directParentNodes is needed: ' + (nodeName !== undefined));
 				if (nodeName !== undefined) {
 					directParentNodes = workflow.getParentNodes(nodeName, 'main', 1);
 				}
@@ -158,6 +159,7 @@ export const workflowRun = mixins(
 
 					// Go over the direct parents of the node
 					for (const directParentNode of directParentNodes) {
+						// console.log("Looping over directParentNodes");
 						// Go over the parents of that node so that we can get a start
 						// node for each of the branches
 						const parentNodes = workflow.getParentNodes(directParentNode, 'main');
@@ -180,6 +182,7 @@ export const workflowRun = mixins(
 					}
 
 					if (Object.keys(newRunData).length === 0) {
+						// console.log('No data for any of the parent nodes!!!!');
 						// If there is no data for any of the parent nodes make sure
 						// that run data is empty that it runs regularly
 						newRunData = undefined;

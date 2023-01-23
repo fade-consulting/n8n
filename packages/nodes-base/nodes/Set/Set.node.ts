@@ -134,7 +134,8 @@ export class Set implements INodeType {
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
-
+		console.log("Checking the value of item is Set");
+		console.log(items);
 		if (items.length === 0) {
 			items.push({ json: {} });
 		}
@@ -146,6 +147,8 @@ export class Set implements INodeType {
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
 			keepOnlySet = this.getNodeParameter('keepOnlySet', itemIndex, false) as boolean;
 			item = items[itemIndex];
+			console.log("Processing item " + itemIndex);
+			console.log(item);
 			const options = this.getNodeParameter('options', itemIndex, {});
 
 			const newItem: INodeExecutionData = {
@@ -200,7 +203,8 @@ export class Set implements INodeType {
 
 			returnData.push(newItem);
 		}
-
+		console.log("Checking the return data")
+		console.log(returnData);
 		return this.prepareOutputData(returnData);
 	}
 }

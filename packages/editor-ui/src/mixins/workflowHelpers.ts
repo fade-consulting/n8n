@@ -622,6 +622,7 @@ export const workflowHelpers = mixins(externalHooks, nodeHelpers, restApi, showM
 
 			// Get the data of the node type that we can get the default values
 			// TODO: Later also has to care about the node-type-version as defaults could be different
+			// console.log('node.type=' + node.type + ' - node.typeVersion=' + node.typeVersion);
 			const nodeType = this.nodeTypesStore.getNodeType(node.type, node.typeVersion);
 
 			if (nodeType !== null) {
